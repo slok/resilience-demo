@@ -1,0 +1,22 @@
+version: "3"
+
+services:
+  envoy:
+    network_mode: host
+    volumes:
+      - ./envoy.yaml:/etc/envoy/envoy.yaml
+    # This image supports histograms.
+    image: envoyproxy/envoy-alpine:6a58e5c2ec65a20293a5f8fee8771355b2f7e42c
+
+  prometheus:
+    network_mode: host
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+    image: prom/prometheus:v2.6.0
+
+  grafana:
+    network_mode: host
+    volumes:
+      - ./grafana/provisioning/:/etc/grafana/provisioning/
+      - ./grafana/grafana.ini:/etc/grafana/grafana.ini
+    image: grafana/grafana:5.4.3
