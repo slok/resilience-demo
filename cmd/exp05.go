@@ -30,8 +30,9 @@ func registerMiddlewares05(reg *prometheus.Registry, next http.Handler) http.Han
 	runner := goresilience.RunnerChain(
 		metrics.NewMiddleware("exp05", metrics.NewPrometheusRecorder(reg)),
 		concurrencylimit.NewMiddleware(concurrencylimit.Config{
-			Executor: execute.NewLIFO(execute.LIFOConfig{}),
-			Limiter:  limit.NewAIMD(limit.AIMDConfig{}),
+			Executor:              execute.NewLIFO(execute.LIFOConfig{}),
+			Limiter:               limit.NewAIMD(limit.AIMDConfig{}),
+			ExecutionResultPolicy: concurrencylimit.NoFailurePolicy,
 		}),
 	)
 
