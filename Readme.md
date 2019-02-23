@@ -230,8 +230,128 @@ echo "GET http://127.0.0.1:8000" | vegeta attack -rate=50/s -duration=1m | veget
 
 #### 15RPS(3m)
 
-- Success [ratio] 82.85%
-- Status Codes [code:count] 200:2237 429:463
-- Latencies [mean, 50, 95, 99, max] 1.524751115s, 332.292889ms, 7.043006583s, 10.687279027s, 13.078790153s
+- Success [ratio] 81.19%
+- Status Codes [code:count] 200:2192 429:508
+- Latencies [mean, 50, 95, 99, max] 1.090299079s, 333.604029ms, 4.439762406s, 6.628273028s, 8.179711014s
 
 ![exp05](img/exp5.png)
+
+## Results for 15m of spike
+
+This test will send 60 RPS for 15m and see how it acts the server in high load (15-20 RPS is the regular load)
+
+echo "GET http://127.0.0.1:8000" | vegeta attack -rate=60/s -duration=15m | vegeta report
+
+### Exp 1
+
+OOM
+
+```
+Requests      [total, rate]            54000, 60.00
+Duration      [total, attack, wait]     15m14.268820372s, 14m59.983537578s, 14.285282794s
+Latencies     [mean, 50, 95, 99, max]   5.732769857s, 991.749077ms, 24.422885044s, 28.789499333s, 29.992899254s
+Bytes In      [total, mean]            1945752, 36.03
+Bytes Out     [total, mean]            0, 0.00
+Success       [ratio]                  9.62%
+Status Codes  [code:count]             200:5196  0:14668  503:34136
+Error Set:
+Get http://127.0.0.1:8000: net/http: timeout awaiting response headers
+503 Service Unavailable
+```
+
+![exp01](img/15m/exp01.png)
+
+### Exp 2
+
+```
+Requests      [total, rate]            54000, 60.00
+Duration      [total, attack, wait]    15m2.553424497s, 14m59.983460652s, 2.569963845s
+Latencies     [mean, 50, 95, 99, max]  4.920048256s, 4.489551134s 9.349859957s, 12.245651922s, 18.850354666s
+Bytes In      [total, mean]            0, 0.00
+Bytes Out     [total, mean]            0, 0.00
+Success       [ratio]                  38.75%
+Status Codes  [code:count]             200:20926  429:33074
+```
+
+![exp02](img/15m/exp02.png)
+
+### Exp 3
+
+```
+Requests      [total, rate]            54000, 60.00
+Duration      [total, attack, wait]    15m3.046427769s, 14m59.98361661s, 3.062811159s
+Latencies     [mean, 50, 95, 99, max]  2.552330289s, 2.301203189s, 6.615381322s, 8.104178217s, 12.29645732s
+Bytes In      [total, mean]            0, 0.00
+Bytes Out     [total, mean]            0, 0.00
+Success       [ratio]                  29.65%
+Status Codes  [code:count]             200:16013  429:37987
+```
+
+![exp03](img/15m/exp03.png)
+
+### Exp 4
+
+```
+Requests      [total, rate]            54000, 60.00
+Duration      [total, attack, wait]    15m1.645409025s, 14m59.983690125s, 1.6617189s
+Latencies     [mean, 50, 95, 99, max]  2.37438s, 1.870175413s, 6.238700461s, 8.340188889s, 13.108961085s
+Bytes In      [total, mean]            0, 0.00
+Bytes Out     [total, mean]            0, 0.00
+Success       [ratio]                  29.07%
+Status Codes  [code:count]             429:38300  200:15700
+```
+
+![exp04](img/15m/exp04.png)
+
+### Exp 5 (`ExecutionResultPolicy: concurrencylimit.NoFailurePolicy`)
+
+```
+Requests      [total, rate]            54000, 60.00
+Duration      [total, attack, wait]    15m1.927478685s, 14m59.983671708s, 1.943806977s
+Latencies     [mean, 50, 95, 99, max]  2.420665229s, 2.141484676s, 4.886248729s, 6.504374711s, 11.140164467s
+Bytes In      [total, mean]            0, 0.00
+Bytes Out     [total, mean]            0, 0.00
+Success       [ratio]                  36.62%
+Status Codes  [code:count]             200:19775  429:34225
+```
+
+![exp05](img/15m/exp05.png)
+
+![exp05_limit](img/15m/exp05_limit.png)
+
+### Exp 5b (`ExecutionResultPolicy: concurrencylimit.FailureOnRejectedPolicy`)
+
+OOM
+
+```
+Requests      [total, rate]            54000, 60.00
+Duration      [total, attack, wait]    14m59.983973922s, 14m59.98349615s, 477.772µs
+Latencies     [mean, 50, 95, 99, max]  1.046654139s, 1.278223ms, 5.209302996s, 9.695038853s, 16.623353127s
+Bytes In      [total, mean]            1803309, 33.39
+Bytes Out     [total, mean]            0, 0.00
+Success       [ratio]                  10.33%
+Status Codes  [code:count]             200:5577  429:16786  503:31637
+
+```
+
+![exp05b](img/15m/exp05b.png)
+
+![exp05b_limit](img/15m/exp05b_limit.png)
+
+### Exp 5c (`ExecutionResultPolicy: concurrencylimit.FailureOnExternalErrorPolicy`)
+
+OOM
+
+```
+Requests      [total, rate]            54000, 60.00
+Duration      [total, attack, wait]    14m59.987470238s, 14m59.98353879s, 3.931448ms
+Latencies     [mean, 50, 95, 99, max]  3.2162299s, 2.130500548s, 11.462128181s, 23.242654084s, 29.371690463s
+Bytes In      [total, mean]            138339, 2.56
+Bytes Out     [total, mean]            0, 0.00
+Success       [ratio]                  33.09%
+Status Codes  [code:count]             0:3  503:2427  200:17868  429:33702
+```
+
+![exp05c](img/15m/exp05c.png)
+
+![exp05c_limit](img/15m/exp05c_limit.png)
