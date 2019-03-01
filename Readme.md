@@ -2,65 +2,15 @@
 
 This demo is based on a talk ([slides here][slides]) about different server resilience patterns.
 
-This resilience demo uses the library [goresilience][goresilience] to apply this patterns at the server side.
+This resilience demo uses the library [goresilience] to apply this patterns at the server side.
 
-## Experiment 01 (naked server)
+## Run the stack
 
-Good:
+```
+make stack
+```
 
-- Simple.
-
-Bad:
-
-- Collapse.
-- Cascading failure.
-
-## Experiment 02 (Bulkhead)
-
-Good:
-
-- Load shedding.
-
-Bad:
-
-- Static configuration.
-
-## Experiment 03 (Bulkhead + circuit breaker)
-
-Good:
-
-- Load shedding.
-- Fails faster than bulkhead (better latencies).
-- Faster recovery of server than Bulkhead.
-
-Bad:
-
-- Static configuration.
-- Miss request even the server is ok (until the CB realizes we are good again).
-
-## Experiment 04 (CoDel)
-
-Good:
-
-- Load shedding.
-- Server recovers very fast.
-- New requests are served faster (unfair serving).
-
-Bad:
-
-- Needs a little bit of configuration (but doesn't affect too much).
-
-## Experiment 05 (concurrency adaptive limit)
-
-Good:
-
-- Load shedding.
-- Server recovers very fast.
-- It adapts to any environment automatically (spikes, scaling, noisy neighbor...)
-
-Bad:
-
-- Depends on the load could be slow to adapt (depending on the environment it requires warming).
+go to Grafana at http://127.0.0.1:3000
 
 ## Results for spike test
 
@@ -355,3 +305,5 @@ Status Codes  [code:count]             0:3  503:2427  200:17868  429:33702
 ![exp05c](img/15m/exp05c.png)
 
 ![exp05c_limit](img/15m/exp05c_limit.png)
+
+[goresilience]: https://github.com/slok/goresilience
