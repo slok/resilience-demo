@@ -12,74 +12,6 @@ make stack
 
 go to Grafana at http://127.0.0.1:3000
 
-## Results for spike test
-
-This results are for a group of different patterns that are stressed on the same kind of environment.
-
-In this stress we will stress the server with the double of capacity that it can accept. The servers are ok with 15-25 requests (the average latency of a good requests should be `1s`).
-
-This tests should show how the different patterns act when the latency of the server handles the of capacity.
-
-Run with
-
-```bash
-docker run --rm -it -v $PWD:/src --network=host --memory="50m" --cpus="0.1"  golang:1.11 /src/bin/server --experiment N
-```
-
-Send traffic with:
-
-```bash
-echo "GET http://127.0.0.1:8000" | vegeta attack -rate=50/s -duration=1m | vegeta report
-```
-
-### exp 1
-
-- Success [ratio] 31.67%
-- Status Codes [code:count] 200:950 0:1603 503:447
-- Latencies [mean, 50, 95, 99, max] 9.09326333s, 0s, 28.180106052s, 29.574287622s, 29.989903245s
-
-### exp 2 (220 workers, 1s timeout)
-
-- Success [ratio] 51.17%
-- Status Codes [code:count] 200:1535 429:776 0:689
-- Latencies [mean, 50, 95, 99, max] 12.930380008s, 13.435930045s, 27.965897573s, 29.563889997s, 29.959203303s
-
-### exp 2 (60 workers, 1s timeout)
-
-- Success [ratio] 57.77%
-- Status Codes [code:count] 200:1733 429:1267
-- Latencies [mean, 50, 95, 99, max] 4.5700287s, 4.285822451s, 8.256593014s, 10.321318012s, 12.401990449s
-
-### exp 3 (220 workers, 1s timeout)
-
-- Success [ratio] 40.43%
-- Status Codes [code:count] 200:1213 429:1101 0:686
-- Latencies [mean, 50, 95, 99, max] 12.57687717s, 12.847427793s, 27.929326512s, 29.619279806s, 29.991049583s
-
-### exp 3 (60 workers, 1s timeout)
-
-- Success [ratio] 41.60%
-- Status Codes [code:count] 200:1248 429:1752
-- Latencies [mean, 50, 95, 99, max] 2.583172117s, 2.392947835s, 6.548954219s, 7.609500836s, 9.196919811s
-
-### exp 4 (220 workers)
-
-- Success [ratio] 51.87%
-- Status Codes [code:count] 429:1444 200:1556
-- Latencies [mean, 50, 95, 99, max] 2.434703068s, 1.84255566s, 6.778619265s, 9.775439303s, 12.179703837s
-
-### exp 4 (60 workers)
-
-- Success [ratio] 53.27%
-- Status Codes [code:count] 200:1598 429:1402
-- Latencies [mean, 50, 95, 99, max] 1.762432259s, 1.44365169s, 4.36282489s, 5.979576587s, 8.201718358s
-
-### exp 5 (timeout 1s)
-
-- Success [ratio] 67.37%
-- Status Codes [code:count] 200:2021 429:979
-- Latencies [mean, 50, 95, 99, max] 3.209694967s, 2.628542629s, 7.328718577s, 9.713145382s, 12.767521878s
-
 ## Results for regular traffic and spike in the middle
 
 This results are for a group of different patterns that are stressed on the same kind of environment.
@@ -94,16 +26,16 @@ Run with
 docker run --rm -it -v $PWD:/src --network=host --memory="50m" --cpus="0.1"  golang:1.11 /src/bin/server --experiment 1
 ```
 
-Send traffic with:
+Schedule traffic spike after ~65s with:
 
 ```bash
 sleep 65 && echo "GET http://127.0.0.1:8000" | vegeta attack -rate=50/s -duration=1m | vegeta report
 ```
 
-then:
+then start the regular traffic:
 
 ```bash
-echo "GET http://127.0.0.1:8000" | vegeta attack -rate=50/s -duration=1m | vegeta report
+echo "GET http://127.0.0.1:8000" | vegeta attack -rate=15/s -duration=3m | vegeta report
 ```
 
 ### exp 1
@@ -176,7 +108,7 @@ echo "GET http://127.0.0.1:8000" | vegeta attack -rate=50/s -duration=1m | veget
 
 ![exp04_60](img/exp4_60.png)
 
-### exp 5 (timeout 1s)
+### exp 5 [AIMD] (timeout 1s)
 
 #### 15RPS(3m)
 
@@ -186,7 +118,7 @@ echo "GET http://127.0.0.1:8000" | vegeta attack -rate=50/s -duration=1m | veget
 
 ![exp05](img/exp5.png)
 
-## Results for 15m of spike
+## Results for 15m of huge load
 
 This test will send 60 RPS for 15m and see how it acts the server in high load (15-20 RPS is the regular load)
 
@@ -253,7 +185,7 @@ Status Codes  [code:count]             429:38300  200:15700
 
 ![exp04](img/15m/exp04.png)
 
-### Exp 5 (`ExecutionResultPolicy: concurrencylimit.NoFailurePolicy`)
+### Exp 5 [AIMD] (`ExecutionResultPolicy: concurrencylimit.NoFailurePolicy`)
 
 ```
 Requests      [total, rate]            54000, 60.00
@@ -269,7 +201,7 @@ Status Codes  [code:count]             200:19775  429:34225
 
 ![exp05_limit](img/15m/exp05_limit.png)
 
-### Exp 5b (`ExecutionResultPolicy: concurrencylimit.FailureOnRejectedPolicy`)
+### Exp 5b [AIMD] (`ExecutionResultPolicy: concurrencylimit.FailureOnRejectedPolicy`)
 
 OOM
 
@@ -288,7 +220,7 @@ Status Codes  [code:count]             200:5577  429:16786  503:31637
 
 ![exp05b_limit](img/15m/exp05b_limit.png)
 
-### Exp 5c (`ExecutionResultPolicy: concurrencylimit.FailureOnExternalErrorPolicy`)
+### Exp 5c [AIMD] (`ExecutionResultPolicy: concurrencylimit.FailureOnExternalErrorPolicy`)
 
 OOM
 
